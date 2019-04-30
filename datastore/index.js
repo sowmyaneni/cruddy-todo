@@ -8,14 +8,18 @@ var items = {};
 // Public API - Fix these CRUD functions /////////////////////////////////////// 
 
 exports.create = (text, callback) => {
-  counter.getNextUniqueId((id) => {
-    fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
-      if (err) {
-        throw ('error writing counter');
-      } else {
-        callback(null, { id, text });
-      }
-    });
+  counter.getNextUniqueId((err, id) => {
+    if (err) {
+      throw ('error getting nextUniqId');
+    } else {
+      fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
+        if (err) {
+          throw ('error writing counter');
+        } else {
+          callback(null, { id, text });
+        }
+      });
+    }
   });
 };
 
@@ -34,33 +38,42 @@ exports.readAll = (callback) => {
 };
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  fs.readFile(`${exports.dataDir}/${id}.txt`, 'utf8', (err, fileData) => {
+    if (err) {
+      callback(err);
+    } else {
+      callback(null, { id, text: fileData });
+    }
+  });
 };
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  fs.exists(`${exports.dataDir}/${id}.txt`, (exists) => {
+    if (!exists) {
+      callback(new Error(`No item with id: ${id}`));
+      return;
+    }
+
+    fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
+      if (err) {
+        callback(err);
+      } else {
+        callback(null, { id, text });
+      }
+    });
+  });
+
 };
 
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if (!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback();
-  }
+  fs.exists(`${exports.dataDir}/${id}.txt`, (exists) => {
+    if (!exists) {
+      callback(new Error(`No item with id: ${id}`));
+      return;
+    }
+
+    fs.unlink(`${exports.dataDir}/${id}.txt`, callback);
+  });
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////

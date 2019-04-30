@@ -43,7 +43,7 @@ exports.getNextUniqueId = (cb) => {
   // return zeroPaddedNumber(counter);
   readCounter((err, num) => {
     writeCounter(num + 1, (err, counterString) => {
-      cb(counterString);
+      cb(null, counterString);
     });
   });
 };
