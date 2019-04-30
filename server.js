@@ -29,6 +29,8 @@ app.post('/todo', (req, res) => {
   });
 });
 
+
+
 // Read all (cRud) -- collection route
 app.get('/todo', (req, res) => {
   Todo.readAll((err, todos) => {
