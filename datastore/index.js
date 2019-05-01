@@ -28,11 +28,21 @@ exports.readAll = (callback) => {
     if (err) {
       throw ('error reading saved todos');
     } else {
-      var data = _.map(files, (id) => {
-        id = id.split('.')[0];
-        return { id, text: id };
+      //iterate over files
+      let promises = [];
+      files.forEach((file) => {
+        //Create a promise 
+        var currentPromise = new Promise((resolve, reject) => {
+          fs.readFile(`${exports.dataDir}/${file}`, 'utf8', (err, text) => {
+            id = file.split('.')[0];
+            resolve({ id, text});
+          });
+        });
+        promises.push(currentPromise);
       });
-      callback(null, data);
+      Promise.all(promises)
+        .then((data) => callback(null, data));
+      
     }
   });
 };
